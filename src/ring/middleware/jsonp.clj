@@ -3,13 +3,16 @@
         [clojure.test :only (deftest is)]))
 
 (defn- pad-json? [request response]
-  (and (get-in request [:params "callback"])
+  (and (or (get-in request [:params :callback])
+           (get-in request [:params "callback"]))
        (re-matches #"application/json(;.*)?" (get-in response [:headers "Content-Type"] ""))))
 
 (defn- add-padding-to-json [request response]
   (-> response
       (content-type "application/javascript")
-      (update-in [:body] #(str (get-in request [:params "callback"]) "(" % ");"))))
+      (update-in [:body] #(str (or (get-in request [:params :callback])
+                                   (get-in request [:params "callback"]))
+                               "(" % ");"))))
 
 (defn wrap-json-with-padding [handler]
   (fn [request]
