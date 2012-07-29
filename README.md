@@ -17,7 +17,7 @@ Example:
 
 ## License
 
-Copyright (C) 2012 Christoffer Sawicki <christoffer.sawicki@gmail.com>
+Copyright (C) 2012 [Christoffer Sawicki](mailto:christoffer.sawicki@gmail.com)
 
 Distributed under the Eclipse Public License, the same as Clojure.
 
