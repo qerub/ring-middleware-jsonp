@@ -1,4 +1,5 @@
 (ns ring.middleware.jsonp
+  (:import (java.io File InputStream))
   (:use [ring.util.response :only (response content-type)]
         [clojure.test :only (deftest is)]))
 
@@ -12,10 +13,16 @@
 (defn- pad-json? [callback response]
   (and callback (json-content-type? response)))
 
+(defn- slurp-body [body]
+  (cond (seq? body) (apply str body)
+        (instance? File body) (slurp body)
+        (instance? InputStream body) (slurp body)
+        :else body)) ; This covers nil and String
+
 (defn- add-padding-to-json [callback response]
   (-> response
       (content-type "application/javascript")
-      (update-in [:body] #(str callback "(" % ");"))))
+      (update-in [:body] #(str callback "(" (slurp-body %) ");"))))
 
 (defn wrap-json-with-padding [handler]
   (fn [request]
