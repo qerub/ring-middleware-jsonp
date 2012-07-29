@@ -8,11 +8,19 @@ JSON resources will automatically support JSONP.
 Example:
 
 ```clojure
+(use 'ring.middleware.jsonp 'ring.util.response)
+
 (def app
-  (-> main-routes
-      handler/site
-      wrap-json-with-padding ; <--
-      wrap-params))
+  (-> (response "{\"result\": 42}")
+      (content-type "application/json")
+      (constantly)
+      (wrap-json-with-padding))) ; <--
+
+(:body (app {}))
+; => "{\"result\": 42}"
+
+(:body (app {:params {:callback "f"}}))
+; => "f({\"result\": 42});"
 ```
 
 ## License
