@@ -1,7 +1,6 @@
 (ns ring.middleware.jsonp
   (:import (java.io File InputStream))
-  (:use [ring.util.response :only (response content-type)]
-        [clojure.test :only (deftest is)]))
+  (:use [ring.util.response :only (response content-type)]))
 
 (defn- get-param [request param]
   (or (get-in request [:params (keyword param)])
