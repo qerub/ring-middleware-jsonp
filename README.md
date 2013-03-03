@@ -1,5 +1,13 @@
 # ring.middleware.jsonp
 
+## Installation
+
+Add the following to your `project.clj` `:dependencies`:
+
+```clojure
+[ring.middleware.jsonp "0.1.1"]
+```
+
 ## Usage
 
 Wrap your [Ring][] application with `wrap-json-with-padding` and
