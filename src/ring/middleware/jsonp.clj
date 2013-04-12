@@ -5,7 +5,8 @@
                     InputStream
                     SequenceInputStream)
            (java.util Enumeration
-                      NoSuchElementException))
+                      NoSuchElementException)
+           (clojure.lang SeqEnumeration))
   (:use [ring.util.response :only (response content-type)]))
 
 (defn- get-param [request param]
@@ -20,15 +21,7 @@
 
 (defn- seqable->enumeration
   [coll]
-  (let [state (atom coll)]
-    (reify Enumeration
-      (hasMoreElements [_] (not (empty? @state)))
-      (nextElement [_]
-        (let [[x & more :as xs] @state]
-          (if (empty? xs)
-            (throw (NoSuchElementException.))
-            (do (reset! state more)
-                x)))))))
+  (SeqEnumeration. (seq coll)))
 
 (defn- string->stream [^String s]
   (ByteArrayInputStream. (.getBytes s)))
