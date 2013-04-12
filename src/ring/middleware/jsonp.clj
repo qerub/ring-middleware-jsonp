@@ -1,5 +1,11 @@
 (ns ring.middleware.jsonp
-  (:import (java.io File InputStream))
+  (:import (java.io ByteArrayInputStream
+                    File
+                    FileInputStream
+                    InputStream
+                    SequenceInputStream)
+           (java.util Enumeration
+                      NoSuchElementException))
   (:use [ring.util.response :only (response content-type)]))
 
 (defn- get-param [request param]
@@ -12,16 +18,45 @@
 (defn- pad-json? [callback response]
   (and callback (json-content-type? response)))
 
-(defn- slurp-body [body]
-  (cond (seq? body) (apply str body)
-        (instance? File body) (slurp body)
-        (instance? InputStream body) (slurp body)
-        :else body)) ; This covers nil and String
+(defn- seqable->enumeration
+  [coll]
+  (let [state (atom coll)]
+    (reify Enumeration
+      (hasMoreElements [_] (not (empty? @state)))
+      (nextElement [_]
+        (let [[x & more :as xs] @state]
+          (if (empty? xs)
+            (throw (NoSuchElementException.))
+            (do (reset! state more)
+                x)))))))
+
+(defn- string->stream [^String s]
+  (ByteArrayInputStream. (.getBytes s)))
+
+(defn- concat-streams
+  [input-streams]
+  (SequenceInputStream. (seqable->enumeration input-streams)))
+
+(defn- body->stream [body]
+  (cond (seq? body) (concat-streams
+                     (for [x body] (string->stream (str x))))
+        (instance? File body) (FileInputStream. body)
+        (instance? InputStream body) body
+        (string? body) (string->stream body)
+        (nil? body) (string->stream "")
+        ;; what the heck else can we do here? Should we make a protocol?
+        :else (throw (Exception. (str "Don't know how to convert "
+                                      (type body)
+                                      " to an InputStream!")))))
 
 (defn- add-padding-to-json [callback response]
   (-> response
       (content-type "application/javascript")
-      (update-in [:body] #(str callback "(" (slurp-body %) ");"))))
+      (update-in [:body]
+                 #(concat-streams
+                   [(string->stream (str callback "("))
+                    (body->stream %)
+                    (string->stream ");")]))))
 
 (defn wrap-json-with-padding [handler]
   (fn [request]

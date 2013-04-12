@@ -10,8 +10,9 @@
        (let [handler  (constantly (content-type (response body) "application/json"))
              response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
          (is (= (get-in response [:headers "Content-Type"]) "application/javascript"))
-         (is (= (:body response) "f({});")))
+         (is (= (slurp (:body response)) "f({});")))
 
        "{}"
        (list "{}")
+       (list "{" "}")
        (StringBufferInputStream. "{}")))
