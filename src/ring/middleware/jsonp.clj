@@ -19,16 +19,11 @@
 (defn- pad-json? [callback response]
   (and callback (json-content-type? response)))
 
-(defn- seqable->enumeration
-  [coll]
-  (SeqEnumeration. (seq coll)))
-
 (defn- string->stream [^String s]
   (ByteArrayInputStream. (.getBytes s)))
 
-(defn- concat-streams
-  [input-streams]
-  (SequenceInputStream. (seqable->enumeration input-streams)))
+(defn- concat-streams [xs]
+  (->> xs seq SeqEnumeration. SequenceInputStream.))
 
 (defn- body->stream [body]
   (cond (seq? body) (concat-streams
@@ -37,7 +32,6 @@
         (instance? InputStream body) body
         (string? body) (string->stream body)
         (nil? body) (string->stream "")
-        ;; what the heck else can we do here? Should we make a protocol?
         :else (throw (Exception. (str "Don't know how to convert "
                                       (type body)
                                       " to an InputStream!")))))

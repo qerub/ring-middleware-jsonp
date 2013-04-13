@@ -6,13 +6,12 @@
 
 (deftest test-json-with-padding
   (are [body]
+    (let [handler  (constantly (content-type (response body) "application/json"))
+          response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
+      (is (= (get-in response [:headers "Content-Type"]) "application/javascript"))
+      (is (= (slurp (:body response)) "f({});")))
 
-       (let [handler  (constantly (content-type (response body) "application/json"))
-             response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
-         (is (= (get-in response [:headers "Content-Type"]) "application/javascript"))
-         (is (= (slurp (:body response)) "f({});")))
-
-       "{}"
-       (list "{}")
-       (list "{" "}")
-       (StringBufferInputStream. "{}")))
+    "{}"
+    (list "{}")
+    (list "{" "}")
+    (StringBufferInputStream. "{}")))
