@@ -33,7 +33,9 @@ Example:
 
 ## License
 
-Copyright (C) 2012 [Christoffer Sawicki](mailto:christoffer.sawicki@gmail.com)
+Copyright (C) 2012–2013
+[Christoffer Sawicki](mailto:christoffer.sawicki@gmail.com) and
+Gary Fredericks
 
 Distributed under the Eclipse Public License, the same as Clojure.
 
