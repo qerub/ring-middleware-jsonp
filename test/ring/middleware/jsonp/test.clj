@@ -5,12 +5,14 @@
         [clojure.test]))
 
 (deftest test-json-with-padding
-  (def test-bodies ["{}" (list "{}") (StringBufferInputStream. "{}")])
+  (are [body]
 
-  (defn test-function [body]
-    (let [handler  (constantly (content-type (response body) "application/json"))
-          response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
-      (is (= (get-in response [:headers "Content-Type"]) "application/javascript"))
-      (is (= (:body response) "f({});"))))
+       (let [handler  (constantly (content-type (response body) "application/json"))
+             response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
+         (is (= (get-in response [:headers "Content-Type"]) "application/javascript"))
+         (is (= (slurp (:body response)) "f({});")))
 
-  (dorun (map test-function test-bodies)))
+       "{}"
+       (list "{}")
+       (list "{" "}")
+       (StringBufferInputStream. "{}")))
