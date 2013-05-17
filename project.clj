@@ -1,4 +1,4 @@
-(defproject ring.middleware.jsonp "0.1.3"
+(defproject ring.middleware.jsonp "0.1.4-SNAPSHOT"
   :description "Ring middleware for JSONP"
   :url "https://github.com/qerub/ring-middleware-jsonp"
   :license {:name "Eclipse Public License"
