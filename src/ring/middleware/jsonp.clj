@@ -17,7 +17,7 @@
   (.. re (matcher s) matches))
 
 (defn- json-content-type? [content-type]
-  (re-matches? #"application/json(;.*)?" content-type))
+  (re-matches? #"application/(.*\+)?json(;.*)?" content-type))
 
 (defn- pad-json? [callback response]
   (and callback (json-content-type? (get-in response [:headers "Content-Type"] ""))))

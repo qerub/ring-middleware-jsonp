@@ -20,4 +20,5 @@
   (let [json-content-type? #'ring.middleware.jsonp/json-content-type?]
     (is (= true  (json-content-type? "application/json")))
     (is (= false (json-content-type? "application/json!!!")))
-    (is (= true  (json-content-type? "application/json; charset=utf-8")))))
+    (is (= true  (json-content-type? "application/json; charset=utf-8")))
+    (is (= true  (json-content-type? "application/hal+json")))))
