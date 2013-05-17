@@ -13,8 +13,11 @@
   (or (get-in request [:params (keyword param)])
       (get-in request [:params (name    param)])))
 
+(defn- re-matches? [^java.util.regex.Pattern re s]
+  (.. re (matcher s) matches))
+
 (defn- json-content-type? [content-type]
-  (re-matches #"application/json(;.*)?" content-type))
+  (re-matches? #"application/json(;.*)?" content-type))
 
 (defn- pad-json? [callback response]
   (and callback (json-content-type? (get-in response [:headers "Content-Type"] ""))))
