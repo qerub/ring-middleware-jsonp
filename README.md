@@ -33,7 +33,7 @@ Example:
 
 ### Compojure
 
-If you're using Compojure, make sure `wrap-json-with-padding` is placed above your site handler (should you have one).
+If you're using Compojure, make sure `wrap-json-with-padding` is placed above your site handler (if you have one).
 
 Example:
 
