@@ -31,6 +31,21 @@ Example:
 ; => "f({\"result\": 42});"
 ```
 
+### Compojure
+
+If you're using Compojure, make sure `wrap-json-with-padding` is placed above your site handler (should you have one).
+
+Example:
+
+```clojure
+(def app
+  (-> app-routes
+      (json/wrap-json-response)
+      (jsonp/wrap-json-with-padding)
+      (handler/site)
+      ...))
+```
+
 ## License
 
 Copyright (C) 2012–2013
