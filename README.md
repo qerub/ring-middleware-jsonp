@@ -40,7 +40,6 @@ Example:
 ```clojure
 (def app
   (-> app-routes
-      (json/wrap-json-response)
       (jsonp/wrap-json-with-padding)
       (handler/site)
       ...))
