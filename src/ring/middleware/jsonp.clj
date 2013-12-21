@@ -42,7 +42,7 @@
 (defn- body->stream [body charset]
   (cond (seq? body) (concat-streams
                      (for [x body] (string->stream (str x) charset)))
-        (instance? File body) (FileInputStream. body)
+        (instance? File body) (FileInputStream. ^File body)
         (instance? InputStream body) body
         (string? body) (string->stream body charset)
         (nil? body) (string->stream "" charset)
