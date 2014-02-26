@@ -15,7 +15,8 @@
       (get-in request [:params (name    param)])))
 
 (defn- re-matches? [^java.util.regex.Pattern re s]
-  (.. re (matcher s) matches))
+  (-> (.matcher re s)
+      (.matches)))
 
 (defn- get-charset [content-type]
   (re-find #"(?<=charset=)[^;]*" content-type))
