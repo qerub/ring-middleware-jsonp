@@ -8,7 +8,8 @@
            (java.util Enumeration
                       NoSuchElementException)
            (clojure.lang SeqEnumeration))
-  (:use [ring.util.response :only (response content-type)]))
+  (:use [clojure.string     :only (lower-case)]
+        [ring.util.response :only (response content-type)]))
 
 (defn- get-param [request param]
   (or (get-in request [:params (keyword param)])
@@ -19,11 +20,9 @@
       (.matches)))
 
 (defn- get-charset [content-type]
-  (re-find #"(?<=charset=)[^;]*" content-type))
-
-(defn- get-charset-or-default [content-type]
-  (or (get-charset content-type)
-      (.name (Charset/defaultCharset))))
+  (if-let [charset (re-find #"(?<=charset=)[^;]*" content-type)]
+    (Charset/forName charset)
+    (Charset/defaultCharset)))
 
 (defn- get-content-type [response]
   (get-in response [:headers "Content-Type"] ""))
@@ -34,7 +33,7 @@
 (defn- pad-json? [callback response]
   (and callback (json-content-type? (get-content-type response))))
 
-(defn- string->stream [^String s ^String charset]
+(defn- string->stream [^String s ^Charset charset]
   (ByteArrayInputStream. (.getBytes s charset)))
 
 (defn- concat-streams [xs]
@@ -52,9 +51,9 @@
                                       " to an InputStream!")))))
 
 (defn- add-padding-to-json [callback response]
-  (let [charset (get-charset-or-default (get-content-type response))]
+  (let [charset (get-charset (get-content-type response))]
     (-> response
-        (content-type (str "application/javascript; charset=" charset))
+        (content-type (str "application/javascript; charset=" (lower-case charset)))
         (update-in [:body]
                    #(concat-streams
                      [(string->stream (str callback "(") charset)

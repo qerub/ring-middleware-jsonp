@@ -3,11 +3,12 @@
            (java.nio.charset Charset))
   (:use [ring.middleware.jsonp]
         [ring.util.response :only (response content-type)]
+        [clojure.string     :only (lower-case)]
         [clojure.test]))
 
 (deftest test-json-with-padding
   (are [body]
-    (let [default-charset (. (Charset/defaultCharset) name)
+    (let [default-charset (lower-case (Charset/defaultCharset))
           handler  (constantly (content-type (response body) "application/json"))
           response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
       (is (= (get-in response [:headers "Content-Type"]) (str "application/javascript; charset=" default-charset)))
