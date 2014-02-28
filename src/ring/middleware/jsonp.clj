@@ -9,7 +9,7 @@
                       NoSuchElementException)
            (clojure.lang SeqEnumeration))
   (:use [clojure.string     :only (lower-case)]
-        [ring.util.response :only (response content-type)]))
+        [ring.util.response :as response]))
 
 (defn- get-param [request param]
   (or (get-in request [:params (keyword param)])
@@ -30,9 +30,6 @@
 (defn- json-content-type? [content-type]
   (re-matches? #"application/(.*\+)?json(;.*)?" content-type))
 
-(defn- pad-json? [callback response]
-  (and callback (json-content-type? (get-content-type response))))
-
 (defn- string->stream [^String s ^Charset charset]
   (ByteArrayInputStream. (.getBytes s charset)))
 
@@ -50,10 +47,10 @@
                                       (type body)
                                       " to an InputStream!")))))
 
-(defn- add-padding-to-json [callback response]
-  (let [charset (get-charset (get-content-type response))]
+(defn- add-padding-to-json [callback content-type response]
+  (let [charset (get-charset content-type)]
     (-> response
-        (content-type (str "application/javascript; charset=" (lower-case charset)))
+        (response/content-type (str "application/javascript; charset=" (lower-case charset)))
         (update-in [:body]
                    #(concat-streams
                      [(string->stream (str callback "(") charset)
@@ -63,7 +60,8 @@
 (defn wrap-json-with-padding [handler]
   (fn [request]
     (let [callback (get-param request :callback)
-          response (handler request)]
-      (if (pad-json? callback response)
-          (add-padding-to-json callback response)
+          response (handler request)
+          content-type (get-content-type response)]
+      (if (and callback (json-content-type? content-type))
+          (add-padding-to-json callback content-type response)
           response))))
