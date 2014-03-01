@@ -5,9 +5,9 @@
                     InputStream
                     SequenceInputStream)
            (java.nio.charset Charset)
-           (clojure.lang SeqEnumeration))
-  (:use [clojure.string     :only (lower-case)]
-        [ring.util.response :as response]))
+           (clojure.lang Sequential
+                         SeqEnumeration))
+  (:use [clojure.string :only (lower-case)]))
 
 (defn- get-param [request param]
   (or (get-in request [:params (keyword param)])
@@ -28,32 +28,24 @@
 (defn- json-content-type? [content-type]
   (re-matches? #"application/(.*\+)?json(;.*)?" content-type))
 
-(defn- string->stream [^String s ^Charset charset]
-  (ByteArrayInputStream. (.getBytes s charset)))
+(defprotocol Streamable
+  (->stream [x]))
 
-(defn- concat-streams [xs]
-  (->> xs seq SeqEnumeration. SequenceInputStream.))
+(def ^:private ^:dynamic ^Charset *current-charset*)
 
-(defn- body->stream [body charset]
-  (cond (seq? body) (concat-streams
-                     (for [x body] (string->stream (str x) charset)))
-        (instance? File body) (FileInputStream. ^File body)
-        (instance? InputStream body) body
-        (string? body) (string->stream body charset)
-        (nil? body) (string->stream "" charset)
-        :else (throw (Exception. (str "Don't know how to convert "
-                                      (type body)
-                                      " to an InputStream!")))))
+(extend-protocol Streamable
+  ;; TODO: Add CollReduce when we depend on Clojure >= 1.4
+  String      (->stream [x] (ByteArrayInputStream. (.getBytes x *current-charset*)))
+  File        (->stream [x] (FileInputStream. x))
+  InputStream (->stream [x] x)
+  Sequential  (->stream [x] (->> x (map ->stream) SeqEnumeration. SequenceInputStream.))
+  nil         (->stream [x] (->stream "")))
 
 (defn- add-padding-to-json [callback content-type response]
-  (let [charset (get-charset content-type)]
+  (binding [*current-charset* (get-charset content-type)]
     (-> response
-        (response/content-type (str "application/javascript; charset=" (lower-case charset)))
-        (update-in [:body]
-                   #(concat-streams
-                     [(string->stream (str callback "(") charset)
-                      (body->stream % charset)
-                      (string->stream ");" charset)])))))
+        (assoc-in [:headers "Content-Type"] (str "application/javascript; charset=" (lower-case *current-charset*)))
+        (update-in [:body] #(->stream [callback "(" % ");"])))))
 
 (defn wrap-json-with-padding [handler]
   (fn [request]
