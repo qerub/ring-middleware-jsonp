@@ -5,8 +5,6 @@
                     InputStream
                     SequenceInputStream)
            (java.nio.charset Charset)
-           (java.util Enumeration
-                      NoSuchElementException)
            (clojure.lang SeqEnumeration))
   (:use [clojure.string     :only (lower-case)]
         [ring.util.response :as response]))
