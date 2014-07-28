@@ -35,23 +35,21 @@
   {:status 422, :headers {"Content-Type" "text/plain"}, :body "Invalid callback parameter"})
 
 (defprotocol Streamable
-  (->stream [x]))
-
-(def ^:private ^:dynamic ^Charset *current-charset*)
+  (->stream [x cs]))
 
 (extend-protocol Streamable
   ;; TODO: Add CollReduce when we depend on Clojure >= 1.4
-  String      (->stream [x] (ByteArrayInputStream. (.getBytes x *current-charset*)))
-  File        (->stream [x] (FileInputStream. x))
-  InputStream (->stream [x] x)
-  Sequential  (->stream [x] (->> x (map ->stream) SeqEnumeration. SequenceInputStream.))
-  nil         (->stream [x] (->stream "")))
+  String      (->stream [x cs] (ByteArrayInputStream. (.getBytes x ^Charset cs)))
+  File        (->stream [x cs] (FileInputStream. x))
+  InputStream (->stream [x cs] x)
+  Sequential  (->stream [x cs] (->> x (map #(->stream % cs)) SeqEnumeration. SequenceInputStream.))
+  nil         (->stream [x cs] (->stream "" cs)))
 
 (defn- add-padding-to-json [callback content-type response]
-  (binding [*current-charset* (get-charset content-type)]
+  (let [cs (get-charset content-type)]
     (-> response
-        (assoc-in [:headers "Content-Type"] (str "application/javascript; charset=" (lower-case *current-charset*)))
-        (update-in [:body] #(->stream [callback "(" % ");"])))))
+        (assoc-in [:headers "Content-Type"] (str "application/javascript; charset=" (lower-case cs)))
+        (update-in [:body] #(->stream [callback "(" % ");"] cs)))))
 
 (defn wrap-json-with-padding [handler]
   (fn [request]
