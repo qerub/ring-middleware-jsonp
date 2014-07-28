@@ -9,26 +9,26 @@
                          SeqEnumeration))
   (:use [clojure.string :only (lower-case)]))
 
-(defn- get-param [request param]
+(defn ^:private get-param [request param]
   (or (get-in request [:params (keyword param)])
       (get-in request [:params (name    param)])))
 
-(defn- re-matches? [^java.util.regex.Pattern re s]
+(defn ^:private re-matches? [^java.util.regex.Pattern re s]
   (-> (.matcher re s)
       (.matches)))
 
-(defn- get-charset [content-type]
+(defn ^:private get-charset [content-type]
   (if-let [charset (re-find #"(?<=charset=)[^;]*" content-type)]
     (Charset/forName charset)
     (Charset/defaultCharset)))
 
-(defn- get-content-type [response]
+(defn ^:private get-content-type [response]
   (get-in response [:headers "Content-Type"] ""))
 
-(defn- json-content-type? [content-type]
+(defn ^:private json-content-type? [content-type]
   (re-matches? #"application/(.*\+)?json(;.*)?" content-type))
 
-(defn- valid-callback? [s]
+(defn ^:private valid-callback? [s]
   (re-matches? #"[a-zA-Z0-9_.]+" s))
 
 (def ^:private response-for-invalid-callback
@@ -45,7 +45,7 @@
   Sequential  (->stream [x cs] (->> x (map #(->stream % cs)) SeqEnumeration. SequenceInputStream.))
   nil         (->stream [x cs] (->stream "" cs)))
 
-(defn- add-padding-to-json [callback content-type response]
+(defn ^:private add-padding-to-json [callback content-type response]
   (let [cs (get-charset content-type)]
     (-> response
         (assoc-in [:headers "Content-Type"] (str "application/javascript; charset=" (lower-case cs)))
