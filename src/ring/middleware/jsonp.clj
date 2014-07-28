@@ -28,6 +28,12 @@
 (defn- json-content-type? [content-type]
   (re-matches? #"application/(.*\+)?json(;.*)?" content-type))
 
+(defn- valid-callback? [s]
+  (re-matches? #"[a-zA-Z0-9_.]+" s))
+
+(def ^:private response-for-invalid-callback
+  {:status 422, :headers {"Content-Type" "text/plain"}, :body "Invalid callback parameter"})
+
 (defprotocol Streamable
   (->stream [x]))
 
@@ -53,5 +59,7 @@
           response (handler request)
           content-type (get-content-type response)]
       (if (and callback (json-content-type? content-type))
-          (add-padding-to-json callback content-type response)
+          (if (valid-callback? callback)
+            (add-padding-to-json callback content-type response)
+            response-for-invalid-callback)
           response))))

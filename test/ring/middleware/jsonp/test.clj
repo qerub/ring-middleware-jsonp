@@ -31,3 +31,8 @@
     (is (= false (json-content-type? "application/json!!!")))
     (is (= true  (json-content-type? "application/json; charset=utf-8")))
     (is (= true  (json-content-type? "application/hal+json")))))
+
+(deftest test-json-with-padding-of-weird-callback
+  (let [handler  (constantly (content-type (response "{}") "application/json"))
+        response ((wrap-json-with-padding handler) {:params {"callback" "()"}})]
+    (is (= @#'ring.middleware.jsonp/response-for-invalid-callback response))))
