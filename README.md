@@ -47,7 +47,7 @@ Example:
 
 ## License
 
-Copyright (C) 2012–2013
+Copyright (C) 2012–2014
 [Christoffer Sawicki](mailto:christoffer.sawicki@gmail.com),
 Gary Fredericks,
 Markus Hjort
