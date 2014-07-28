@@ -5,7 +5,7 @@
 Add the following to your `project.clj` `:dependencies`:
 
 ```clojure
-[ring.middleware.jsonp "0.1.5-SNAPSHOT"]
+[ring.middleware.jsonp "0.1.5"]
 ```
 
 ## Usage
