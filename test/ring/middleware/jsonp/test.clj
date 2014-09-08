@@ -36,3 +36,16 @@
   (let [handler  (constantly (content-type (response "{}") "application/json"))
         response ((wrap-json-with-padding handler) {:params {"callback" "()"}})]
     (is (= @#'ring.middleware.jsonp/response-for-invalid-callback response))))
+
+(deftest test-response-with-missing-content-type
+  (let [handler  (constantly {})
+        response ((wrap-json-with-padding handler) {})]
+    ;; Look ma', no exception!
+    (is (= response {}))))
+
+(deftest test-json-with-padding-and-wyrd-case
+  (let [default-charset (lower-case (Charset/defaultCharset))
+        handler  (constantly {:headers {"CONTENT-TYPE" "application/json"}, :body "{}"})
+        response ((wrap-json-with-padding handler) {:params {"callback" "f"}})]
+    (is (= (get-in response [:headers "CONTENT-TYPE"]) (str "application/javascript; charset=" default-charset)))
+    (is (= (slurp (:body response)) "f({});"))))

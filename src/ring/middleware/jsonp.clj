@@ -22,8 +22,8 @@
     (Charset/forName charset)
     (Charset/defaultCharset)))
 
-(defn ^:private get-content-type [response]
-  (get-in response [:headers "Content-Type"] ""))
+(defn ^:private get-content-type [content-type-header-name response]
+  (get-in response [:headers content-type-header-name] ""))
 
 (defn ^:private json-content-type? [content-type]
   (re-matches? #"application/(.*\+)?json(;.*)?" content-type))
@@ -33,6 +33,12 @@
 
 (def ^:private response-for-invalid-callback
   {:status 422, :headers {"Content-Type" "text/plain"}, :body "Invalid callback parameter"})
+
+(defn ^:private get-content-type-header-name [response]
+  (->> (:headers response)
+       (keys)
+       (filter #(.equalsIgnoreCase "content-type" (name %1)))
+       (first)))
 
 (defprotocol Streamable
   (->stream [x cs]))
@@ -45,19 +51,20 @@
   Sequential  (->stream [x cs] (->> x (map #(->stream % cs)) SeqEnumeration. SequenceInputStream.))
   nil         (->stream [x cs] (->stream "" cs)))
 
-(defn ^:private add-padding-to-json [callback content-type response]
+(defn ^:private add-padding-to-json [callback content-type-header-name content-type response]
   (let [cs (get-charset content-type)]
     (-> response
-        (assoc-in [:headers "Content-Type"] (str "application/javascript; charset=" (lower-case cs)))
+        (assoc-in [:headers content-type-header-name] (str "application/javascript; charset=" (lower-case cs)))
         (update-in [:body] #(->stream [callback "(" % ");"] cs)))))
 
 (defn wrap-json-with-padding [handler]
   (fn [request]
     (let [callback (get-param request :callback)
           response (handler request)
-          content-type (get-content-type response)]
+          content-type-header-name (get-content-type-header-name response)
+          content-type (get-content-type content-type-header-name response)]
       (if (and callback (json-content-type? content-type))
           (if (valid-callback? callback)
-            (add-padding-to-json callback content-type response)
+            (add-padding-to-json callback content-type-header-name content-type response)
             response-for-invalid-callback)
           response))))
