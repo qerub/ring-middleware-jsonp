@@ -50,6 +50,6 @@ Copyright (C) 2012–2014
 Gary Fredericks,
 Markus Hjort
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the Eclipse Public License 1.0 (the same as Clojure).
 
 [Ring]: https://github.com/ring-clojure/ring
