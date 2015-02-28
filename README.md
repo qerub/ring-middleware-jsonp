@@ -4,7 +4,9 @@
 
 Add the following to your `project.clj` `:dependencies`:
 
-[![Clojars Project](http://clojars.org/ring.middleware.jsonp/latest-version.svg)](http://clojars.org/ring.middleware.jsonp)
+```clojure
+[ring.middleware.jsonp "0.1.7-SNAPSHOT"]
+```
 
 ## Usage
 
